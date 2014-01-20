@@ -101,7 +101,7 @@
        (if (and (equal-commute? (first e1) (first e2)) (equal-commute? (third e1) (third e2)))
            #t
            (and (equal-commute? (first e1) (third e2)) (equal-commute? (third e1) (first e2))))]
-      ;case for - or /
+      ;Do not allow to pivot on - or /
       [else (and (equal-commute? (first e1) (first e2)) (equal-commute? (third e1) (third e2)))]
     )))
 
