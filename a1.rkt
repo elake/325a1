@@ -39,7 +39,7 @@
     ; triples require evaluation of left and right, followed by operation
     [ else (op-eval (second ex) (exp-eval (first ex) symtable) (exp-eval (third ex) symtable)) ]
     ))
-
+#|
 (exp-eval 1)
 (exp-eval '1)
 (exp-eval '(1) '())
@@ -48,6 +48,7 @@
 (exp-eval '( (1 + 2) * (3 + 4) ) '())
 (exp-eval '(1 + x) '())
 (exp-eval '(1 + (5 * 3) + (9 * 3) ) '( (x 2) (c 6) ) )
+|#
 
 (define base-equal-expanded
   (lambda (e1o e1larg e1rarg e2o e2larg e2rarg)
@@ -86,12 +87,15 @@
       [else #f])))
 
 (define equal-commute?
-  (lambda (e1 e2)
+  (lambda (e1 e2 [pivoting #f])
     (cond
+      ;a non-list has been hit from an input like '(x + (y * z))
+      [(not (list? e1) ) (equal? e1 e2)]
       ;e1 and e2 have reached a three-item list starting with atoms. Base case.
       [(and (not (list? (first e1))) (not (list? (first e2)))) (base-equal e1 e2)]
-      ;e1 and e2 do not match in depth, need to pivot
-      [(xor (list? (first e1)) (list? (first e2))) (equal-commute? (reverse e1) e2)]
+      ;e1 and e2 do not match in depth, need to pivot. #f if infinite pivot scenario.
+      [(xor (list? (first e1)) (list? (first e2)))
+       (if pivoting #f (equal-commute? (reverse e1) e2 #t))]
       ;allow to pivot on + or *
       [(or (is-plus? (second e1)) (is-times? (second e1)))
        (if (and (equal-commute? (first e1) (first e2)) (equal-commute? (third e1) (third e2)))
