@@ -85,6 +85,21 @@
       ;Operations are different
       [else #f])))
 
+(define equal-commute?
+  (lambda (e1 e2)
+    (cond
+      ;e1 and e2 have reached a three-item list starting with atoms
+      [(and (not (list? (first e1))) (not (list? (first e2)))) (base-equal e1 e2)]
+      ;e1 and e2 do not match in depth, need to 
+      [(xor (list? (first e1)) (list? (first e2)))
+       (and (equal-commute? (first e1) (third e2)) (equal-commute? (third e1) (first e2)))]
+      [(or (is-plus? (second e1)) (is-times? (second e1)))
+       (if (and (equal-commute? (first e1) (first e2)) (equal-commute? (third e1) (third e2)))
+           #t
+           (and (equal-commute? (first e1) (third e2)) (equal-commute? (third e1) (first e2))))]
+      [else (and (equal-commute? (first e1) (first e2)) (equal-commute? (third e1) (third e2)))]
+    )))
+
 (define equal-commute
   (lambda (e1 e2)
     (cond
