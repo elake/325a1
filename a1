@@ -49,20 +49,49 @@
 (exp-eval '(1 + x) '())
 (exp-eval '(1 + (5 * 3) + (9 * 3) ) '( (x 2) (c 6) ) )
 
-(define base-equal
+(define base-equal-expanded
   (lambda (e1o e1larg e1rarg e2o e2larg e2rarg)
     ;assume that this is the base case
     (cond
       ;Operations are both either + or *
-      [(and (equal? e1o e2o) (or (equal? e1o +) (equal? e1o *))) (if
+      [(and (equal? e1o e2o) (or (is-plus? e1o) (is-times? e1o))) (if
        (or (and (equal? e1larg e2larg) (equal? e1rarg e2rarg))
            (and (equal? e1larg e2rarg) (equal? e1rarg e2larg)) )
        #t
        #f)]
       ;Operations are both either - or /
-      [(and (equal? e1o e2o) (or (equal? e1o -) (equal? e1o /))) (if
+      [(and (equal? e1o e2o) (or (is-minus? e1o) (is-divide? e1o))) (if
        (and (equal? e1larg e2larg) (equal? e1rarg e2rarg))
        #t
        #f)]
       ;Operations are different
       [else #f])))
+
+(define base-equal
+  (lambda (e1 e2)
+    ;assume that this is the base case
+    (cond
+      ;Operations are both either + or *
+      [(and (equal? (second e1) (second e2)) (or (is-plus? (second e1)) (is-times? (second e1)))) (if
+       (or (and (equal? (first e1) (first e2)) (equal? (third e1) (third e2)))
+           (and (equal? (first e1) (third e2)) (equal? (third e1) (first e2))) )
+       #t
+       #f)]
+      ;Operations are both either - or /
+      [(and (equal? (second e1) (second e2)) (or (is-minus? (second e1)) (is-divide? (second e1)))) (if
+       (and (equal? (first e1) (first e2)) (equal? (third e1) (third e2)))
+       #t
+       #f)]
+      ;Operations are different
+      [else #f])))
+
+(define equal-commute
+  (lambda (e1 e2)
+    (cond
+      [(not (list? (first e1))) (base-equal e1 e2)]
+      [(or (is-plus? (second e1)) (is-times? (second e1)))
+       (if (and (equal-commute (first e1) (first e2)) (equal-commute (third e1) (third e2)))
+           #t
+           (and (equal-commute (first e1) (third e2)) (equal-commute (third e1) (first e2))))]
+      [else (and (equal-commute (first e1) (first e2)) (equal-commute (third e1) (third e2)))]
+    )))
