@@ -1,0 +1,45 @@
+#lang racket
+    ; an operation can appear as quoted or as a procedure, depending on how the 
+    ; expression was constructed, so detect both forms.
+     
+    (define (is-plus? op) (or (equal? op +) (equal? op '+))) 
+    (define (is-times? op) (or (equal? op *) (equal? op '*))) 
+     
+    ; apply op to left and right arguments, assume they are numbers
+    ; this can be tested with the number? predicate
+    (define (op-eval op larg rarg)
+      (cond 
+        [ (is-plus? op) (+ larg rarg) ]
+        [ (is-times? op) (* larg rarg) ]
+        ))
+     
+    ; evaluate an infix expression tree, assuming that all the leaves 
+    ; are numbers.
+    (define (exp-eval ex)
+      (cond
+        ; atoms are themselves
+        [ (not (list? ex)) ex ]  
+     
+        ; single element lists are the value of their first element
+        [ (null? (rest ex)) (exp-eval (first ex)) ] 
+     
+        ; triples require evaluation of left and right, followed by operation
+        [ else (op-eval (second ex) (exp-eval (first ex)) (exp-eval (third ex))) ]
+        ))
+     
+    (exp-eval 1)
+    (exp-eval '1)
+    (exp-eval '(1))
+    (exp-eval '(1 + 2))
+    (exp-eval '(3 * 4))
+    (exp-eval '( (1 + 2) * (3 + 4) ))
+    ;will not work: (exp-eval '(1 + x))
+
+;findf format modeled from a post on the d2jsp.org forum by J_B
+(define symfind
+  (lambda (symbol table)
+    (let ([lookup (findf (lambda (c) (equal? symbol (first c))) table)])
+      (if lookup (cadr lookup) #f))))
+
+
+
